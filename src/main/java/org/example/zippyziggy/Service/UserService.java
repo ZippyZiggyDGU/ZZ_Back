@@ -2,11 +2,20 @@ package org.example.zippyziggy.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.zippyziggy.Config.SecurityConfig;
+import org.example.zippyziggy.DTO.request.LoginRequest;
+import org.example.zippyziggy.DTO.request.SignupRequest;
+import org.example.zippyziggy.DTO.response.TokenResponse;
 import org.example.zippyziggy.Domain.User;
 import org.example.zippyziggy.Repository.UserRepository;
+import org.example.zippyziggy.Util.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -14,15 +23,57 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final Map<String, String> refreshTokenStorage = new HashMap<>();
 
-    public User authenticateUser(String userId, String rawPassword) {
+    public UserDetails loadUserByUserId(String userId) {
         User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
 
-        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new IllegalArgumentException("Invalid password");
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUserId())
+                .password(user.getPassword())
+                .authorities("ROLE_USER")
+                .build();
+    }
+
+    public void signup(SignupRequest request) {
+        if (userRepository.existsByUserId(request.getUserId())) {
+            throw new RuntimeException("이미 존재하는 사용자입니다.");
         }
-        return user;
+        User user = new User(request.getUserId(), passwordEncoder.encode(request.getPassword()));
+        userRepository.save(user);
+    }
+
+    public TokenResponse login(LoginRequest request) {
+        User user = userRepository.findByUserId(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("아이디 또는 비밀번호가 틀렸습니다."));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("아이디 또는 비밀번호가 틀렸습니다.");
+        }
+
+        String accessToken = jwtTokenProvider.createAccessToken(request.getUserId());
+
+        if (request.isRememberMe()) {
+            String refreshToken = jwtTokenProvider.createRefreshToken(request.getUserId());
+            refreshTokenStorage.put(request.getUserId(), refreshToken);
+            return new TokenResponse(accessToken, refreshToken);
+        } else {
+            return new TokenResponse(accessToken, null);
+        }
+    }
+
+    public TokenResponse reissue(String refreshToken) {
+        String username = jwtTokenProvider.getUserIdFromToken(refreshToken);
+
+        String savedRefreshToken = refreshTokenStorage.get(username);
+        if (!refreshToken.equals(savedRefreshToken)) {
+            throw new RuntimeException("리프레시 토큰이 유효하지 않습니다.");
+        }
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(username);
+        return new TokenResponse(newAccessToken, refreshToken);
     }
 
 }

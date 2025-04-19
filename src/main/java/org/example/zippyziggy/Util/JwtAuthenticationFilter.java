@@ -1,45 +1,49 @@
 package org.example.zippyziggy.Util;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.example.zippyziggy.Domain.User;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 import org.example.zippyziggy.Service.UserService;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.beans.factory.ObjectProvider;  // ObjectProvider 추가
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
-@Component
-@RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtUtil jwtUtil;
-    private final UserService userService;
+public class JwtAuthenticationFilter extends GenericFilter {
+
+    private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectProvider<UserService> userServiceProvider;
+
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, ObjectProvider<UserService> userServiceProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.userServiceProvider = userServiceProvider;
+    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("AUTH_TOKEN".equals(cookie.getName())) {
-                    String token = cookie.getValue();
-                    if (jwtUtil.validateToken(token)) {
-                        String userId = jwtUtil.getUserIdFromToken(token);
-                        User user = userService.authenticateUser(userId, "");
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-                    }
-                }
-            }
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        String token = resolveToken((HttpServletRequest) request);
+
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            String userId = jwtTokenProvider.getUserIdFromToken(token);
+            var userDetails = userServiceProvider.getObject().loadUserByUserId(userId);
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails((HttpServletRequest) request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        filterChain.doFilter(request, response);
+
+        chain.doFilter(request, response);
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }

@@ -5,11 +5,8 @@ spring:
     password: "kim8383!"
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
 
 jwt:
-  secret: U3VwZXJTZWNyZXRLZXlGb3JKT1NPTg==
-  short-expiration: 300
-  long-expiration: 86400000
+  secret: XUKemfiZfrEWLtykdkjfeliwjfd59YLt5XXXkAdqZu33
