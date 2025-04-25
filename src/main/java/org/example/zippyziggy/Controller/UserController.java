@@ -1,14 +1,12 @@
 package org.example.zippyziggy.Controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.zippyziggy.DTO.request.ChangePWRequest;
 import org.example.zippyziggy.DTO.request.LoginRequest;
 import org.example.zippyziggy.DTO.request.SignupRequest;
 import org.example.zippyziggy.DTO.response.TokenResponse;
 import org.example.zippyziggy.Service.UserService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,6 +29,12 @@ public class UserController {
     public TokenResponse reissue(@RequestHeader("Authorization") String bearerToken) {
         String refreshToken = bearerToken.substring(7);
         return userService.reissue(refreshToken);
+    }
+
+    @PatchMapping("/change-pw")
+    public String changePW(@RequestBody ChangePWRequest request) {
+        userService.changePW(request);
+        return "비밀번호 변경 성공!";
     }
 
 }

@@ -2,6 +2,7 @@ package org.example.zippyziggy.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.zippyziggy.Config.SecurityConfig;
+import org.example.zippyziggy.DTO.request.ChangePWRequest;
 import org.example.zippyziggy.DTO.request.LoginRequest;
 import org.example.zippyziggy.DTO.request.SignupRequest;
 import org.example.zippyziggy.DTO.response.TokenResponse;
@@ -9,6 +10,7 @@ import org.example.zippyziggy.Domain.User;
 import org.example.zippyziggy.Repository.UserRepository;
 import org.example.zippyziggy.Util.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -74,6 +76,20 @@ public class UserService {
 
         String newAccessToken = jwtTokenProvider.createAccessToken(username);
         return new TokenResponse(newAccessToken, refreshToken);
+    }
+
+    public void changePW(ChangePWRequest request) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(request.getCurrentPW(), user.getPassword())) {
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getTargetPW()));
+        userRepository.save(user);
     }
 
 }
