@@ -23,11 +23,18 @@ public class User {
     @Column(nullable = false)
     private boolean rememberMe;
 
+    @Column(nullable = false)
+    private int gender;
+
+    @Column(nullable = false, length = 8)
+    private String birth;
+
     protected User() {}
 
-    public User(String userId, String password) {
+    public User(String userId, String password, int gender, String birth) {
         this.userId = userId;
         this.password = password;
+        this.gender = gender;
+        this.birth = birth;
     }
-
 }

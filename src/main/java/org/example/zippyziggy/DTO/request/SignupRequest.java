@@ -9,4 +9,8 @@ public class SignupRequest {
 
     private String password;
 
+    private int gender;
+
+    private String birth;
+
 }
