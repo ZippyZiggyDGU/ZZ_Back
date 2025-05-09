@@ -21,4 +21,12 @@ public class MagazineService {
         Magazine magazine = new Magazine(title, content);
         return magazineRepository.save(magazine);
     }
+
+
+    public Magazine getById(Long id) {
+        return magazineRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("해당 매거진이 없습니다. id=" + id));
+    }
+
+
 }

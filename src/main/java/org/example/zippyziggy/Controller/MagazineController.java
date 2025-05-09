@@ -26,6 +26,13 @@ public class MagazineController {
         return "작성 완료!";
     }
 
+    @GetMapping("/{id}")
+    public Magazine getMagazineById(@PathVariable Long id) {
+        return magazineService.getById(id);
+    }
+
+
+
     @Data
     static class MagazineRequest {
         private String title;
