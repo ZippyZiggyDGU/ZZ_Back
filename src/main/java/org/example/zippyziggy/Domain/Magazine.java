@@ -6,6 +6,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import jakarta.persistence.Lob;
+
 
 @Entity
 @Getter
@@ -17,6 +19,7 @@ public class Magazine {
     private Long id;
 
     private String title;
+    @Lob
     private String content;
 
     public Magazine(String title, String content) {
