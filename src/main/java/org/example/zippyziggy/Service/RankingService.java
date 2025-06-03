@@ -25,7 +25,7 @@ public class RankingService {
     public List<RankResponse> getRanking() {
         String loginUserId = SecurityContextHolder.getContext().getAuthentication().getName();
         User loginUser = userRepository.findByUserId(loginUserId)
-                .orElseThrow(() -> new IllegalArgumentException());
+                .orElseThrow(() -> new IllegalArgumentException(""));
 
         Long loginUserDbId = loginUser.getId();
 
@@ -41,17 +41,17 @@ public class RankingService {
 
         List<Predict> top3 = predictRepository.findTop3ByOrderByResultAsc();
         Predict bottomPredict = predictRepository.findTopByOrderByResultDesc()
-                .orElseThrow(() -> new IllegalArgumentException());
+                .orElseThrow(() -> new IllegalArgumentException(""));
 
         int totalCount = sorted.size();
 
         List<RankResponse> result = new ArrayList<>();
-        if (top3.size() > 0) result.add(new RankResponse(1, top3.get(0).getUser().getUserId()));
-        if (top3.size() > 1) result.add(new RankResponse(2, top3.get(1).getUser().getUserId()));
-        if (top3.size() > 2) result.add(new RankResponse(3, top3.get(2).getUser().getUserId()));
+        if (top3.size() > 0) result.add(new RankResponse(1, top3.get(0).getUser().getUserName()));
+        if (top3.size() > 1) result.add(new RankResponse(2, top3.get(1).getUser().getUserName()));
+        if (top3.size() > 2) result.add(new RankResponse(3, top3.get(2).getUser().getUserName()));
 
-        result.add(new RankResponse(userRank, loginUser.getUserId()));
-        result.add(new RankResponse(totalCount, bottomPredict.getUser().getUserId()));
+        result.add(new RankResponse(userRank, loginUser.getUserName()));
+        result.add(new RankResponse(totalCount, bottomPredict.getUser().getUserName()));
 
         return result;
     }

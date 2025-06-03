@@ -9,6 +9,6 @@ public class RankResponse {
 
     private int rank;
 
-    private String userId;
+    private String userName;
 
 }

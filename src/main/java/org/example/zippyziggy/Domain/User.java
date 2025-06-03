@@ -29,12 +29,16 @@ public class User {
     @Column(nullable = false, length = 8)
     private String birth;
 
+    @Column(nullable = false, length = 20)
+    private String userName;
+
     protected User() {}
 
-    public User(String userId, String password, int gender, String birth) {
+    public User(String userId, String password, int gender, String birth, String userName) {
         this.userId = userId;
         this.password = password;
         this.gender = gender;
         this.birth = birth;
+        this.userName = userName;
     }
 }

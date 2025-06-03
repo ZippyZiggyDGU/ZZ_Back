@@ -43,7 +43,7 @@ public class UserService {
         if (userRepository.existsByUserId(request.getUserId())) {
             throw new RuntimeException("이미 존재하는 사용자입니다.");
         }
-        User user = new User(request.getUserId(), passwordEncoder.encode(request.getPassword()), request.getGender(), request.getBirth());
+        User user = new User(request.getUserId(), passwordEncoder.encode(request.getPassword()), request.getGender(), request.getBirth(), request.getUserName());
         userRepository.save(user);
     }
 
