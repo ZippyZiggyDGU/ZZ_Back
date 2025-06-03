@@ -28,7 +28,7 @@ public class RecommendationController {
 
         double result = predict.getResult();
         int smoke = predict.getSmoke();
-
+//재수정
         List<Magazine> recommended = new ArrayList<>();
 
         // result 기반 매거진 추천

@@ -19,4 +19,7 @@ public interface PredictRepository extends JpaRepository<Predict, Long> {
 
     Optional<Predict> findTopByOrderByResultDesc();
 
+    Optional<Predict> findTopByUser_UserIdOrderByIdDesc(String userId);
+
+
 }
