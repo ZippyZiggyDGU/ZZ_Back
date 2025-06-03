@@ -13,4 +13,6 @@ public class SignupRequest {
 
     private String birth;
 
+    private String userName;
+
 }
