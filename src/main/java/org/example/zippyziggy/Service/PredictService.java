@@ -1,9 +1,12 @@
 package org.example.zippyziggy.Service;
 
 import org.example.zippyziggy.DTO.request.PredictRequest;
+import org.example.zippyziggy.DTO.response.ModelLogResponse;
 import org.example.zippyziggy.DTO.response.PredictResponse;
+import org.example.zippyziggy.Domain.ModelLog;
 import org.example.zippyziggy.Domain.Predict;
 import org.example.zippyziggy.Domain.User;
+import org.example.zippyziggy.Repository.ModelLogRepository;
 import org.example.zippyziggy.Repository.PredictRepository;
 import org.example.zippyziggy.Repository.UserRepository;
 import org.springframework.http.ResponseEntity;
@@ -11,17 +14,25 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Service
 public class PredictService {
 
     private final PredictRepository predictRepository;
     private final UserRepository userRepository;
     private final RestTemplate restTemplate;
+    private final ModelLogRepository modelLogRepository;
 
-    public PredictService(PredictRepository predictRepository, UserRepository userRepository, RestTemplate restTemplate) {
+    public PredictService(PredictRepository predictRepository,
+                          UserRepository userRepository,
+                          RestTemplate restTemplate,
+                          ModelLogRepository modelLogRepository) {
         this.predictRepository = predictRepository;
         this.userRepository = userRepository;
         this.restTemplate = restTemplate;
+        this.modelLogRepository = modelLogRepository;
     }
 
     public Predict predict(PredictRequest request) {
@@ -45,7 +56,32 @@ public class PredictService {
         predict.setSmoke(request.getSmoke());
         predict.setPrs(request.getPrs());
         predict.setResult(probability);
+        Predict saved = predictRepository.save(predict);
 
-        return predictRepository.save(predict);
+        LocalDate today = LocalDate.now();
+        modelLogRepository.findByUserAndTestDate(user, today)
+                .ifPresent(modelLogRepository::delete);
+
+        ModelLog log = ModelLog.builder()
+                .user(user)
+                .testDate(LocalDate.now())
+                .result(probability)
+                .build();
+        modelLogRepository.save(log);
+
+        return saved;
+    }
+
+    public List<ModelLogResponse> getModelLog() {
+        String loginUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUserId(loginUserId)
+                .orElseThrow(() -> new IllegalArgumentException(""));
+
+        List<ModelLog> logs = modelLogRepository.findAllByUser(user);
+
+        return logs.stream()
+                .map(log -> new ModelLogResponse(log.getTestDate(), log.getResult()))
+                .toList();
     }
 }

@@ -1,16 +1,19 @@
 package org.example.zippyziggy.Controller;
 
 import org.example.zippyziggy.DTO.request.PredictRequest;
+import org.example.zippyziggy.DTO.response.ModelLogResponse;
 import org.example.zippyziggy.DTO.response.PredictResponse;
 import org.example.zippyziggy.Domain.Predict;
 import org.example.zippyziggy.Service.PredictService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
+import java.util.List;
 
 @RestController
 public class PredictController {
@@ -37,6 +40,11 @@ public class PredictController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get-logs")
+    public List<ModelLogResponse> getUserLogs() {
+        return predictService.getModelLog();
     }
 
 }

@@ -5,6 +5,7 @@ import org.example.zippyziggy.Config.SecurityConfig;
 import org.example.zippyziggy.DTO.request.ChangePWRequest;
 import org.example.zippyziggy.DTO.request.LoginRequest;
 import org.example.zippyziggy.DTO.request.SignupRequest;
+import org.example.zippyziggy.DTO.response.MypageResponse;
 import org.example.zippyziggy.DTO.response.TokenResponse;
 import org.example.zippyziggy.Domain.User;
 import org.example.zippyziggy.Repository.UserRepository;
@@ -16,6 +17,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,6 +94,24 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(request.getTargetPW()));
         userRepository.save(user);
+    }
+
+    public MypageResponse getMypage() {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException(""));
+
+        LocalDate birth = LocalDate.parse(user.getBirth(), DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        int age = Period.between(birth, LocalDate.now()).getYears();
+
+        return MypageResponse.builder()
+                .userName(user.getUserName())
+                .gender(user.getGender())
+                .birth(birth)
+                .age(age)
+                .build();
     }
 
 }

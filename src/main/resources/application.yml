@@ -17,4 +17,4 @@ server:
 
 chatbot:
   api:
-    url: http://3.36.60.63:8000/chat
+    url: http://52.79.156.162:8000/chat
