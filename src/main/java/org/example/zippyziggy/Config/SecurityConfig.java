@@ -27,11 +27,23 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtTokenProvider, userServiceProvider);
 
         return http
+                // (A) Security 필터 체인에서도 CORS 설정 활성화
+                .cors(cors -> {
+                    // 빈껍데기만 선언해도, WebConfig에 정의한 CORS 규칙이 자동으로 적용됩니다.
+                })
+
+                // (B) CSRF 비활성화 (API 서버라면 보통 disable)
                 .csrf(csrf -> csrf.disable())
+
+                // (C) 다음 경로들은 인증 없이 허용: signup, login, magazine, change-pw, predict
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/signup", "/login").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers(
+                                "/signup",
+                                "/login",
+                                "/magazine/**"
+                        ).permitAll()
+                        .anyRequest().authenticated())
+
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
