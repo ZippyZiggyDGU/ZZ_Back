@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 import java.util.ArrayList;
 
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/recommend")
@@ -26,9 +27,17 @@ public class RecommendationController {
                 .orElseThrow(() -> new RuntimeException("해당 사용자의 예측 결과가 없습니다."));
 
 
-        double result = predict.getResult();
+        double result = predict.getResult() * 100;
         int smoke = predict.getSmoke();
-//재수정
+
+        System.out.println("===== 매거진 추천 진입 =====");
+        System.out.println("UserId: " + userId);
+        System.out.println("PRS result: " + result);
+        System.out.println("Smoke 여부: " + smoke);
+
+
+
+
         List<Magazine> recommended = new ArrayList<>();
 
         // result 기반 매거진 추천
@@ -48,6 +57,16 @@ public class RecommendationController {
         } else {
             recommended.add(magazineRepository.findById(6L).orElse(null));
         }
+
+        for (Magazine mag : recommended) {
+            if (mag != null) {
+                System.out.println("추천된 매거진 ID: " + mag.getId() + ", 제목: " + mag.getTitle());
+            } else {
+                System.out.println("추천된 매거진이 null입니다 (존재하지 않음)");
+            }
+        }
+
+
 
         return ResponseEntity.ok(recommended);
     }
