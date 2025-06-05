@@ -13,11 +13,11 @@ public class WebConfig implements WebMvcConfigurer {
         registry
                 .addMapping("/**") // 모든 엔드포인트에 대해
                 .allowedOrigins(
-                        "http://localhost:5173", // React 개발 서버
-                        "zippyziggy.site" // 배포된 프론트 도메인
+                        "zippyziggy.site", // 배포된 프론트 도메인
+                        "https://zippyziggy.site",
+                        "https://www.zippyziggy.site"
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
                 .allowCredentials(true);
     }
 }
