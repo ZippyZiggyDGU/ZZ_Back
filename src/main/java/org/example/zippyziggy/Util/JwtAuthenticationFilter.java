@@ -27,7 +27,7 @@ public class JwtAuthenticationFilter extends GenericFilter {
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             String userId = jwtTokenProvider.getUserIdFromToken(token);
-            var userDetails = userServiceProvider.getObject().loadUserByUserId(userId);
+            var userDetails = userServiceProvider.getObject().loadUserByUsername(userId);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
